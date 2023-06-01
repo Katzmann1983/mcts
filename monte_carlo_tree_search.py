@@ -30,22 +30,17 @@ class MCTS:
             if self.N[n] == 0:
                 return float("-inf")  # avoid unseen moves
             return self.Q[n] / self.N[n]  # average reward
-
-        for c in self.children[node]:
-            print(score(c), c)
-        return max(self.children[node], key=score)
+        if not node.turn:
+            return max(self.children[node], key=score)
+        else:
+            return min(self.children[node], key=score)
 
     def do_rollout(self, node):
         "Make the tree one layer better. (Train for one iteration.)"
         path = self._select(node)
         leaf = path[-1]
-        child = self._expand(leaf)
-        invert_reward = True
-        if child != leaf:
-            path.append(child)
-            invert_reward = False
-        reward = self._simulate(child, invert_reward)
-        # print("Leaf, Reward: ", leaf, reward)
+        self._expand(leaf)
+        reward = self._simulate(leaf)
         self._backpropagate(path, reward)
 
     def _select(self, node):
@@ -65,16 +60,13 @@ class MCTS:
 
     def _expand(self, node):
         "Update the `children` dict with the children of `node`"
-        if node.terminal:
-            return node
         if node in self.children:
-            return node  # already expanded
-        else:
-            self.children[node] = node.find_children()
-            return next(iter(self.children[node]))
+            return  # already expanded
+        self.children[node] = node.find_children()
 
-    def _simulate(self, node, invert_reward=True):
+    def _simulate(self, node):
         "Returns the reward for a random simulation (to completion) of `node`"
+        invert_reward = True
         while True:
             if node.is_terminal():
                 reward = node.reward()
@@ -94,7 +86,6 @@ class MCTS:
 
         # All children of node should already be expanded:
         assert all(n in self.children for n in self.children[node])
-        assert all(self.N[n] > 0 for n in self.children[node])
 
         log_N_vertex = math.log(self.N[node])
 

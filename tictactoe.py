@@ -23,7 +23,7 @@ terminal=False # No legal moves
 """
 
 from collections import namedtuple
-from random import choice
+from random import choice, seed
 from monte_carlo_tree_search import MCTS, Node
 
 _TTTB = namedtuple("TicTacToeBoard", "tup turn winner terminal")
@@ -41,6 +41,7 @@ class TicTacToeBoard(_TTTB, Node):
         }
 
     def find_random_child(board):
+        seed(42)
         if board.terminal:
             return None  # If the game is finished then no moves can be made
         empty_spots = [i for i, value in enumerate(board.tup) if value is None]
@@ -54,7 +55,7 @@ class TicTacToeBoard(_TTTB, Node):
             raise RuntimeError(f"reward called on unreachable board {board}")
         if board.winner is None:
             return 0.5  # Board is a tie
-        elif board.winner:
+        elif board.winner: # True has won
             return 1
         else:
             return 0
