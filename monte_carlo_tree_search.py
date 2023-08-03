@@ -85,6 +85,7 @@ class MCTS:
                 n = unexplored.pop()
                 path.append(n)
                 return path, False
+            # TODO Fix that the two different terminals are the same, e.g. when node = board.terminal = False
             interesting = [n for n in self.children[node] if (n not in self.terminal) and (not n.is_terminal()) and self.N[n]>0]
             if len(interesting) == 0:
                 return path, True
