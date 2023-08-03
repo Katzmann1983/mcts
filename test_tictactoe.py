@@ -195,7 +195,7 @@ def test_find_winning_move():
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(1000):
+    for _ in range(660*2):
         tree.do_rollout(board)
     tree.do_rollout(board)
     # Check that all childs are terminated correctly:
@@ -234,3 +234,26 @@ def test_terminal_nodes_visited_once():
     for node in tree.N:
         if node.is_terminal():
             assert tree.terminal[node] == tree.Q[node]/tree.N[node]
+
+
+
+def test_find_end_of_game():
+    from random import seed
+    seed(42)
+    # Solve, why it sometimes starts really bad:
+    board = TicTacToeBoard(
+        tup=(None, None, None, None, True, None, None, None, None),
+        #tup=(None, False, None, None, True, None, None, None, None),
+        turn=False,
+        winner=None,
+        terminal=False,
+    )
+    tree = MCTS()
+    for _ in range(10000):
+        tree.do_rollout(board)
+    for k in tree.terminal:
+        assert k in tree.children
+    for c in tree.children:
+        assert c in tree.children
+    assert len(tree.terminal) == 1837
+
