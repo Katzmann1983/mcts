@@ -1,25 +1,23 @@
-from tictactoe import TicTacToeBoard, MCTS, _find_winner
+# from tictactoe import TicTacToeBoard
+from monte_carlo_tree_search import MCTS
+from TicTacToeChat import TicTacToeBoard
 
 
 def test_all_leafs_found():
     # Create a MCTS and check that after a few 100 iterations, it is completely drawn
     board = TicTacToeBoard(
-        tup=(True, None, False, False, True, True, None, True, False),
+        board=[["X", " ", "O"], ["O", "X", "X"], [" ", "X", "O"]],
         turn=True,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(100):
         tree.do_rollout(board)
     tree.do_rollout(board)
-    assert len(tree.children) == 4 
+    assert len(tree.children) == 4
 
     board = TicTacToeBoard(
-        tup=(True, None, False, None, True, True, None, True, False),
+        board=[["X", " ", "O"], [" ", "X", "X"], [" ", "X", "O"]],
         turn=False,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(100):
@@ -62,7 +60,7 @@ def test_leafs_consistent2():
         tree.do_rollout(board)
     for child in tree.N:
         if child.is_terminal():
-            if tree.N[child]  > 0:
+            if tree.N[child] > 0:
                 if child.winner is None:
                     assert tree.Q[child] / tree.N[child] == 0.5
                 elif child.winner:
@@ -75,6 +73,7 @@ def test_all_runs_accounted():
     # The game graph is not a tree, especially the same game state can be reached on multiple paths.
     # Only for the top level holds that the children should be equal to all runs - one for setup
     from random import seed
+
     seed(42)
     board = TicTacToeBoard(
         tup=(True, None, False, None, True, None, None, None, False),
@@ -86,19 +85,18 @@ def test_all_runs_accounted():
     for i in range(100):
         tree.do_rollout(board)
         if i > 0:
-            assert tree.N[board]-1 == i
+            assert tree.N[board] - 1 == i
     assert sum([tree.N[c] for c in tree.children[board]]) == tree.N[board] - 1
-        
+
 
 def test_correct_choice_simple():
     # Create a MCTS and check that given two simple choices
     # Check that it chooses the winning move
     from random import seed
+
     seed(42)
     board = TicTacToeBoard(
-        tup=(False, False, None, 
-            True, True, False, 
-            None, True, True),
+        tup=(False, False, None, True, True, False, None, True, True),
         turn=False,
         winner=None,
         terminal=False,
@@ -115,11 +113,10 @@ def test_correct_choice_simple_inverse():
     # Create a MCTS and check that given two simple choices
     # Check that it chooses the winning one
     from random import seed
+
     seed(42)
     board = TicTacToeBoard(
-        tup=(True, True, None, 
-            False, False, True, 
-            None, False, False),
+        tup=(True, True, None, False, False, True, None, False, False),
         turn=True,
         winner=None,
         terminal=False,
@@ -144,6 +141,7 @@ def test_correct_winner():
 
 def test_find_good_moves():
     from random import seed
+
     seed(42)
     # Solve, why it sometimes starts really bad:
     board = TicTacToeBoard(
@@ -159,7 +157,7 @@ def test_find_good_moves():
     # Check that all childs are terminated correctly:
     for child in tree.children[board]:
         choice = [i for i in range(9) if child.tup[i] is not None and not child.tup[i]]
-        print (choice)
+        print(choice)
         if choice == 0:
             assert tree.terminal[child] == 0.5
         elif choice == 1:
@@ -181,13 +179,17 @@ def test_find_good_moves():
     # TODO: Make this test not failing!
     selection = tree.choose(board)
     print(selection)
-    draw_moves = [0,2,6,8]
-    corner_selected = any([selection.tup[i] is not None and not selection.tup[i] for i in draw_moves])
+    draw_moves = [0, 2, 6, 8]
+    draw_moves = [[1, 1], [1, 3], [3, 1], [3, 3]]
+    # corner_selected = any([selection.tup[i] is not None and not selection.tup[i] for i in draw_moves])
+    corner_selected = any(
+        [selection.board[r][c] is not None and not selection.board[r][c] for ir,c in draw_moves]
+    )
     assert corner_selected, "None corner selected"
 
 
 def test_find_winning_move():
-    # Check if True chooses 
+    # Check if True chooses
     board = TicTacToeBoard(
         tup=(None, False, None, None, True, None, None, None, None),
         turn=True,
@@ -195,7 +197,7 @@ def test_find_winning_move():
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(660*2):
+    for _ in range(660 * 2):
         tree.do_rollout(board)
     tree.do_rollout(board)
     # Check that all childs are terminated correctly:
@@ -216,11 +218,12 @@ def test_find_winning_move():
             assert tree.terminal[child] == 0
         else:
             assert 1 != 0
-      
+
 
 def test_terminal_nodes_visited_once():
     "TODO: Should not explore terminal nodes unnecessay often"
     from random import seed
+
     seed(42)
     board = TicTacToeBoard(
         tup=(None, None, None, None, True, None, None, None, None),
@@ -233,17 +236,17 @@ def test_terminal_nodes_visited_once():
         tree.do_rollout(board)  # Add one child
     for node in tree.N:
         if node.is_terminal():
-            assert tree.terminal[node] == tree.Q[node]/tree.N[node]
-
+            assert tree.terminal[node] == tree.Q[node] / tree.N[node]
 
 
 def test_find_end_of_game():
     from random import seed
+
     seed(42)
     # Solve, why it sometimes starts really bad:
     board = TicTacToeBoard(
         tup=(None, None, None, None, True, None, None, None, None),
-        #tup=(None, False, None, None, True, None, None, None, None),
+        # tup=(None, False, None, None, True, None, None, None, None),
         turn=False,
         winner=None,
         terminal=False,
@@ -256,4 +259,3 @@ def test_find_end_of_game():
     for c in tree.children:
         assert c in tree.children
     assert len(tree.terminal) == 1837
-
