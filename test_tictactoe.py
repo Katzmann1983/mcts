@@ -1,13 +1,13 @@
-# from tictactoe import TicTacToeBoard
-from monte_carlo_tree_search import MCTS
-from TicTacToeChat import TicTacToeBoard
+from tictactoe import TicTacToeBoard, MCTS, _find_winner
 
 
 def test_all_leafs_found():
     # Create a MCTS and check that after a few 100 iterations, it is completely drawn
     board = TicTacToeBoard(
-        board=[["X", " ", "O"], ["O", "X", "X"], [" ", "X", "O"]],
+        tup=(True, None, False, False, True, True, None, True, False),
         turn=True,
+        winner=None,
+        terminal=False,
     )
     tree = MCTS()
     for _ in range(100):
@@ -16,8 +16,10 @@ def test_all_leafs_found():
     assert len(tree.children) == 4
 
     board = TicTacToeBoard(
-        board=[["X", " ", "O"], [" ", "X", "X"], [" ", "X", "O"]],
+        tup=(True, None, False, None, True, True, None, True, False),
         turn=False,
+        winner=None,
+        terminal=False,
     )
     tree = MCTS()
     for _ in range(100):
@@ -180,10 +182,8 @@ def test_find_good_moves():
     selection = tree.choose(board)
     print(selection)
     draw_moves = [0, 2, 6, 8]
-    draw_moves = [[1, 1], [1, 3], [3, 1], [3, 3]]
-    # corner_selected = any([selection.tup[i] is not None and not selection.tup[i] for i in draw_moves])
     corner_selected = any(
-        [selection.board[r][c] is not None and not selection.board[r][c] for ir,c in draw_moves]
+        [selection.tup[i] is not None and not selection.tup[i] for i in draw_moves]
     )
     assert corner_selected, "None corner selected"
 
