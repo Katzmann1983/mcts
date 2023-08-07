@@ -33,11 +33,18 @@ class TicTacToeBoard(Node):
         return self.is_winner("X") or self.is_winner("O") or self.is_draw()
 
     def reward(self):
+<<<<<<< HEAD
         """Rewards depend on who is the current player"""
         if self.is_winner("X"):
             return 1 if self.turn else 0
         elif self.is_winner("O"):
             return 0 if self.turn else 1
+=======
+        if self.is_winner("X"):
+            return 1
+        elif self.is_winner("O"):
+            return 0
+>>>>>>> 6c65d1d (not working)
         else:
             return 0.5
 
@@ -55,7 +62,8 @@ class TicTacToeBoard(Node):
         return False
 
     def is_draw(self):
-        return all(self.board[i][j] != " " for i in range(3) for j in range(3))
+        all_set = all(self.board[i][j] != " " for i in range(3) for j in range(3))
+        return all_set & (not self.is_winner("O")) & (not self.is_winner("O"))
 
     def __hash__(self):
         return hash(str(self.board))
@@ -75,6 +83,8 @@ class TicTacToeBoard(Node):
     def __str__(self) -> str:
         return self.to_pretty_string()
 
+    def __repr__(self) -> str:
+        return (self.board, self.turn)
 
 def new_tic_tac_toe_board():
     return TicTacToeBoard()
