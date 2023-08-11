@@ -42,46 +42,36 @@ class ConnectFourGame(Node):
 
     def make_move(self, board, col):
         for row in range(5, -1, -1):
-            if board[row][col] is " ":
+            if board[row][col] == " ":
                 board[row][col] = "X" if self.turn else "O"
                 break
         return board
 
     def is_winner(self, player):
         for row in range(self.NR_ROWS):
-            for col in range(4):
-                if (
-                    self.board[row][col] == player
-                    and self.board[row][col + 1] == player
-                    and self.board[row][col + 2] == player
-                    and self.board[row][col + 3] == player
-                ):
-                    return True
-        for row in range(3):
             for col in range(self.NR_COLS):
-                if (
-                    self.board[row][col] == player
-                    and self.board[row + 1][col] == player
-                    and self.board[row + 2][col] == player
-                    and self.board[row + 3][col] == player
+                # Horizontal check
+                if col + 3 < self.NR_COLS and all(
+                    self.board[row][col + i] == player for i in range(4)
                 ):
                     return True
-        for row in range(3):
-            for col in range(4):
-                if (
-                    self.board[row][col] == player
-                    and self.board[row + 1][col + 1] == player
-                    and self.board[row + 2][col + 2] == player
-                    and self.board[row + 3][col + 3] == player
+                # Vertical check
+                if row + 3 < self.NR_ROWS and all(
+                    self.board[row + i][col] == player for i in range(4)
                 ):
                     return True
-        for row in range(3):
-            for col in range(3, self.NR_COLS):
+                # Diagonal check (down-right)
                 if (
-                    self.board[row][col] == player
-                    and self.board[row + 1][col - 1] == player
-                    and self.board[row + 2][col - 2] == player
-                    and self.board[row + 3][col - 3] == player
+                    col + 3 < self.NR_COLS
+                    and row + 3 < self.NR_ROWS
+                    and all(self.board[row + i][col + i] == player for i in range(4))
+                ):
+                    return True
+                # Diagonal check (down-left)
+                if (
+                    col - 3 >= 0
+                    and row + 3 < self.NR_ROWS
+                    and all(self.board[row + i][col - i] == player for i in range(4))
                 ):
                     return True
         return False
@@ -136,5 +126,19 @@ def play_game():
             break
 
 
+def profile_tree():
+    import cProfile
+
+    profiler = cProfile.Profile()
+    profiler.enable()
+    tree = MCTS()
+    game = ConnectFourGame()
+    for _ in range(100):
+        tree.do_rollout(game)
+    profiler.disable()
+    profiler.print_stats()
+
+
 if __name__ == "__main__":
-    play_game()
+    # play_game()
+    profile_tree()
