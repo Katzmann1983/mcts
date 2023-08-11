@@ -14,7 +14,7 @@ class TicTacToeBoard(Node):
             for col in range(3):
                 if self.board[row][col] == " ":
                     child_board = [row[:] for row in self.board]
-                    child_board[row][col] = 'X' if self.turn else 'O'
+                    child_board[row][col] = "X" if self.turn else "O"
                     children.add(TicTacToeBoard(child_board, not self.turn))
         return children
 
@@ -26,17 +26,31 @@ class TicTacToeBoard(Node):
                     valid_moves.append((row, col))
         random_row, random_col = random.choice(valid_moves)
         child_board = [row[:] for row in self.board]
-        child_board[random_row][random_col] = 'X' if self.turn else 'O'
+        child_board[random_row][random_col] = "X" if self.turn else "O"
         return TicTacToeBoard(child_board, not self.turn)
 
     def is_terminal(self):
-        return self.is_winner('X') or self.is_winner('O') or self.is_draw()
+        return self.is_winner("X") or self.is_winner("O") or self.is_draw()
 
     def reward(self):
-        if self.is_winner('X'):
+<<<<<<< HEAD
+<<<<<<< HEAD
+        """Rewards depend on who is the current player"""
+        if self.is_winner("X"):
             return 1 if self.turn else 0
-        elif self.is_winner('O'):
+        elif self.is_winner("O"):
             return 0 if self.turn else 1
+=======
+=======
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
+        if self.is_winner("X"):
+            return 1
+        elif self.is_winner("O"):
+            return 0
+<<<<<<< HEAD
+>>>>>>> 6c65d1d (not working)
+=======
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
         else:
             return 0.5
 
@@ -54,7 +68,8 @@ class TicTacToeBoard(Node):
         return False
 
     def is_draw(self):
-        return all(self.board[i][j] != " " for i in range(3) for j in range(3))
+        all_set = all(self.board[i][j] != " " for i in range(3) for j in range(3))
+        return all_set & (not self.is_winner("O")) & (not self.is_winner("O"))
 
     def __hash__(self):
         return hash(str(self.board))
@@ -63,10 +78,8 @@ class TicTacToeBoard(Node):
         return self.board == other.board
 
     def to_pretty_string(self):
-        #to_char = lambda v: ("X" if v is True else ("O" if v is False else " "))
-        rows = [
-            [(self.board[row][col]) for col in range(3)] for row in range(3)
-        ]
+        # to_char = lambda v: ("X" if v is True else ("O" if v is False else " "))
+        rows = [[(self.board[row][col]) for col in range(3)] for row in range(3)]
         return (
             "\n  1 2 3\n"
             + "\n".join(str(i + 1) + " " + " ".join(row) for i, row in enumerate(rows))
@@ -76,7 +89,12 @@ class TicTacToeBoard(Node):
     def __str__(self) -> str:
         return self.to_pretty_string()
 
+    def __repr__(self) -> str:
+        return (self.board, self.turn)
+<<<<<<< HEAD
+=======
 
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
 
 def new_tic_tac_toe_board():
     return TicTacToeBoard()
@@ -89,9 +107,9 @@ def play_game():
     while True:
         row_col = input("enter row,col: ")
         row, col = map(int, row_col.split(","))
-        if board.board[row-1][col-1] != " ":
+        if board.board[row - 1][col - 1] != " ":
             raise RuntimeError("Invalid move")
-        board.board[row-1][col-1] = "X"
+        board.board[row - 1][col - 1] = "X"
         board.turn = not board.turn
         print(board.to_pretty_string())
         if board.is_terminal():

@@ -12,6 +12,22 @@ def get_choice(board, child):
     return index
 
 
+def test_correct_winner():
+    board = TicTacToeBoard(
+        board=[["X", "X", "X"], [" ", " ", " "], [" ", " ", " "]],
+        turn=True,
+    )
+    assert board.is_winner("X")
+
+
+def test_correct_winner():
+    board = TicTacToeBoard(
+        board=[["X", "X", "X"], [" ", " ", " "], [" ", " ", " "]],
+        turn=True,
+    )
+    assert board.is_winner("X")
+
+
 def test_all_leafs_found():
     # Create a MCTS and check that after a few 100 iterations, it is completely drawn
     board = TicTacToeBoard(
@@ -27,10 +43,8 @@ def test_all_leafs_found():
     assert len(tree.children) == 4
 
     board = TicTacToeBoard(
-        tup=(True, None, False, None, True, True, None, True, False),
+        board=[["X", " ", "O"], [" ", "X", "X"], [" ", "X", "O"]],
         turn=False,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(100):
@@ -42,19 +56,17 @@ def test_all_leafs_found():
 def test_leafs_consistent():
     # Create a MCTS and check that every terminal state is consistent (Win/Loss/Drawn)
     board = TicTacToeBoard(
-        tup=(True, None, False, None, True, None, None, None, False),
+        board=[["X", " ", "O"], [" ", "X", " "], [" ", " ", "O"]],
         turn=False,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(100):
         tree.do_rollout(board)
         for child in tree.children:
             if child.is_terminal():
-                if child.winner is None:
+                if child.is_draw():
                     assert tree.Q[child] / tree.N[child] == 0.5
-                elif child.winner:
+                elif child.is_winner("X"):
                     assert tree.Q[child] / tree.N[child] == 0
                 elif not child.winner:
                     assert tree.Q[child] / tree.N[child] == 1
@@ -65,10 +77,8 @@ def test_leafs_consistent():
 def test_leafs_consistent2():
     # Create a MCTS and check that every terminal state is consistent (Win/Loss/Drawn)
     board = TicTacToeBoard(
-        tup=(None, None, None, None, None, None, None, None, None),
+        board=[[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]],
         turn=True,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(1000):
@@ -76,9 +86,9 @@ def test_leafs_consistent2():
     for child in tree.N:
         if child.is_terminal():
             if tree.N[child] > 0:
-                if child.winner is None:
+                if child.is_draw():
                     assert tree.Q[child] / tree.N[child] == 0.5
-                elif child.winner:
+                elif child.is_winner("X"):
                     assert tree.Q[child] / tree.N[child] == 0
                 else:
                     assert tree.Q[child] / tree.N[child] == 1
@@ -96,10 +106,8 @@ def test_all_runs_accounted():
 
     seed(42)
     board = TicTacToeBoard(
-        tup=(True, None, False, None, True, None, None, None, False),
+        board=[["X", " ", "O"], [" ", "X", " "], [" ", " ", "O"]],
         turn=False,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for i in range(100):
@@ -116,49 +124,69 @@ def test_correct_choice_simple():
 
     seed(42)
     board = TicTacToeBoard(
-        tup=(False, False, None, True, True, False, None, True, True),
+        board=[["O", "O", " "], ["X", "X", "O"], [" ", "X", "X"]],
         turn=False,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(100):
         tree.do_rollout(board)  # Add one child
         # assert tree._select(board)[-1] not in tree.children[board] # Check that the next one chosen is new
-    child = tree.choose(board)
-    assert child.tup[2] is not None and not child.tup[2]
+    choice = tree.choose(board)
+    assert choice.board[0][2] is not None and choice.board[0][2] == "O"
+<<<<<<< HEAD
     assert get_choice(child, board) == 2
+=======
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
 
 
 def test_correct_choice_simple_inverse():
-    # Create a MCTS and check that given two simple choices
-    # Check that it chooses the winning one
+    # Create a MCTS and check that given three simple choices
+    # it chooses the winning one
     from random import seed
 
     seed(42)
     board = TicTacToeBoard(
-        tup=(True, True, None, False, False, True, None, False, False),
+        board=[["X", "X", " "], ["O", "O", " "], [" ", "O", "O"]],
         turn=True,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(100):
         tree.do_rollout(board)  # Add one child
         # assert tree._select(board)[-1] not in tree.children[board] # Check that the next one chosen is new
-    child = tree.choose(board)
-    assert child.tup[2] is not None and child.tup[2]
-    assert get_choice(child, board) == 2
+    choice = tree.choose(board)
+    assert choice.board[0][2] == "X"
 
 
-def test_correct_winner():
+def test_find_winning_move():
+    # Check if True chooses
     board = TicTacToeBoard(
-        tup=(True, True, True, None, None, None, None, None, None),
+        board=[[" ", "O", " "], [" ", "X", " "], [" ", " ", " "]],
         turn=True,
-        winner=None,
-        terminal=False,
+<<<<<<< HEAD
     )
-    assert _find_winner(board.tup)
+    tree = MCTS()
+    for _ in range(627 * 2):
+        tree.do_rollout(board)
+    tree.do_rollout(board)
+    assert len(tree.terminal) == 627
+    # Check that all childs are terminated correctly:
+    for child in tree.children[board]:
+        if child.board[0][0] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[0][2] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[1][0] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[1][2] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[2][0] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[2][1] == "X":
+            assert tree.terminal[child] == 0.5
+        elif child.board[2][2] == "X":
+            assert tree.terminal[child] == 0.0
+        else:
+            assert False
 
 
 def test_terminal_nodes_visited_once():
@@ -176,19 +204,14 @@ def test_terminal_nodes_visited_once():
             assert tree.N[node] == 1
 
 
-def test_find_end_of_game():
-    from random import seed
-
-    seed(42)
-    # Solve, why it sometimes starts really bad:
+def test_find_winning_move2():
+    # Check if True chooses
     board = TicTacToeBoard(
-        tup=(None, None, None, None, True, None, None, None, None),
+        board=[[" ", "O", " "], [" ", "X", " "], [" ", "X", " "]],
         turn=False,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
-    for _ in range(10000):
+    for _ in range(239 * 2):
         tree.do_rollout(board)
     for k in tree.terminal:
         assert k in tree.children
@@ -199,28 +222,63 @@ def test_find_end_of_game():
 
 def test_find_winning_move1():
     # Check if False chooses boarder
-    board = TicTacToeBoard(
-        tup=(None, None, None, None, True, None, None, None, None),
-        turn=False,
-        winner=None,
-        terminal=False,
+=======
     )
     tree = MCTS()
+    for _ in range(627 * 2):
+        tree.do_rollout(board)
+    tree.do_rollout(board)
+    assert len(tree.terminal) == 627
+    # Check that all childs are terminated correctly:
+    for child in tree.children[board]:
+        if child.board[0][0] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[0][2] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[1][0] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[1][2] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[2][0] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[2][1] == "X":
+            assert tree.terminal[child] == 0.5
+        elif child.board[2][2] == "X":
+            assert tree.terminal[child] == 0.0
+        else:
+            assert 1 != 0
+
+
+def test_find_winning_move2():
+    # Check if True chooses
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
+    board = TicTacToeBoard(
+        board=[[" ", "O", " "], [" ", "X", " "], [" ", "X", " "]],
+        turn=False,
+    )
+    tree = MCTS()
+<<<<<<< HEAD
     for _ in range(1837 * 2):
+=======
+    for _ in range(239 * 2):
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
         tree.do_rollout(board)
     assert len(tree.terminal) == 1837
     tree.do_rollout(board)
+<<<<<<< HEAD
     assert len(tree.terminal) == 1837
+=======
+    assert len(tree.terminal) == 239
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
     # Check that all childs are terminated correctly:
     print([tree.terminal[child] for child in tree.children[board]])
     print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
     for child in tree.children[board]:
+<<<<<<< HEAD
         choice = get_choice(board, child)
         if choice == 0:
             assert tree.terminal[child] == 0.5
-        elif choice == 1:
-            assert tree.terminal[child] == 0
-        elif choice == 2:
+        elif child.board[0][2] == "O":
             assert tree.terminal[child] == 0.5
         elif choice == 3:
             assert tree.terminal[child] == 0
@@ -245,10 +303,8 @@ def test_find_winning_move1():
 def test_find_winning_move2():
     # Check that true chooses winner
     board = TicTacToeBoard(
-        tup=(None, False, None, None, True, None, None, None, None),
+        board=[[" ", "O", " "], [" ", "X", "O"], [" ", "X", " "]],
         turn=True,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(627 * 2):
@@ -315,11 +371,32 @@ def test_find_winning_move3():
 def test_find_winning_move4():
     board = TicTacToeBoard(
         tup=(None, False, False, None, True, None, None, True, None),
+=======
+        if child.board[0][0] == "O":
+            assert tree.terminal[child] == 0.5
+        elif child.board[0][2] == "O":
+            assert tree.terminal[child] == 0.5
+        elif child.board[1][0] == "O":
+            assert tree.terminal[child] == 0.0
+        elif child.board[1][2] == "O":
+            assert tree.terminal[child] == 0.0
+        elif child.board[2][0] == "O":
+            assert tree.terminal[child] == 0.5
+        elif child.board[2][2] == "O":
+            assert tree.terminal[child] == 0.5
+        else:
+            assert 1 != 0
+
+
+def test_find_winning_move3():
+    # Check if True chooses
+    board = TicTacToeBoard(
+        board=[[" ", "O", " "], [" ", "X", "O"], [" ", "X", " "]],
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
         turn=True,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
+<<<<<<< HEAD
     for _ in range(76 * 3):
         tree.do_rollout(board)
     tree.do_rollout(board)
@@ -369,9 +446,29 @@ def test_find_winning_move5():
             assert tree.terminal[child] == 0
         elif choice == 8:
             assert tree.terminal[child] == 0.5
+=======
+    for _ in range(85 * 2):
+        tree.do_rollout(board)
+    tree.do_rollout(board)
+    assert len(tree.terminal) == 85
+    # Check that all childs are terminated correctly:
+    print([tree.terminal[child] for child in tree.children[board]])
+    for child in tree.children[board]:
+        if child.board[0][0] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[0][2] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[1][0] == "X":
+            assert tree.terminal[child] == 0.0
+        elif child.board[2][2] == "X":
+            assert tree.terminal[child] == 1.0
+        elif child.board[2][0] == "X":
+            assert tree.terminal[child] == 1.0
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
         else:
             assert False, f"This choice {choice} should never happen!"
 
+<<<<<<< HEAD
 
 def test_find_winning_move6():
     board = TicTacToeBoard(
@@ -385,10 +482,76 @@ def test_find_winning_move6():
         tree.do_rollout(board)
     tree.do_rollout(board)
     assert len(tree.terminal) == 12
+=======
+def test_find_winning_move4():
+    # No matter what O does, X still wins
+    board = TicTacToeBoard(
+        board=[[" ", "O", " "], [" ", "X", "O"], ["X", "X", " "]],
+        turn=False,
+    )
+    tree = MCTS()
+    for _ in range(26 * 2):
+        tree.do_rollout(board)
+    tree.do_rollout(board)
+    assert len(tree.terminal) == 26
     # Check that all childs are terminated correctly:
     print([tree.terminal[child] for child in tree.children[board]])
     print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
     for child in tree.children[board]:
+        if child.board[0][0] == "O":
+            assert tree.terminal[child] == 1.0
+        elif child.board[0][2] == "O":
+            assert tree.terminal[child] == 1.0
+        elif child.board[1][0] == "O":
+            assert tree.terminal[child] == 1.0
+        elif child.board[2][2] == "O":
+            assert tree.terminal[child] == 1.0
+        else:
+            assert 1 != 0
+
+
+def test_find_winning_move5():
+    # X must win
+    board = TicTacToeBoard(
+        board=[[" ", "O", " "], ["O", "X", "O"], ["X", "X", " "]],
+        turn=True,
+    )
+    tree = MCTS()
+    for _ in range(4 * 2):
+        tree.do_rollout(board)
+    tree.do_rollout(board)
+    assert len(tree.terminal) == 4
+    # Check that all childs are terminated correctly:
+    print([tree.terminal[child] for child in tree.children[board]])
+    print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
+    for child in tree.children[board]:
+        if child.board[0][0] == "X":
+            assert tree.terminal[child] == 1.0
+        elif child.board[0][2] == "X":
+            assert tree.terminal[child] == 1.0
+        elif child.board[2][2] == "X":
+            assert tree.terminal[child] == 1.0
+        else:
+            assert 1 != 0
+
+
+def test_find_winning_move6():
+    # X must win
+    board = TicTacToeBoard(
+        board=[["X", "O", " "], ["O", "X", "O"], ["X", "X", " "]],
+        turn=False,
+    )
+    tree = MCTS()
+    for _ in range(5 * 2):
+        tree.do_rollout(board)
+    tree.do_rollout(board)
+    assert len(tree.terminal) == 3
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
+    # Check that all childs are terminated correctly:
+    print([tree.terminal[child] for child in tree.children[board]])
+    print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
+    for child in tree.children[board]:
+<<<<<<< HEAD
         choice = get_choice(board, child)
         if choice == 3:
             assert tree.terminal[child] == 1.0
@@ -398,14 +561,20 @@ def test_find_winning_move6():
             assert tree.terminal[child] == 1.0
         else:
             assert False, f"This choice {choice} should never happen!"
+=======
+        if child.board[0][2] == "O":
+            assert tree.terminal[child] == 1.0
+        elif child.board[2][2] == "O":
+            assert tree.terminal[child] == 1.0
+        else:
+            assert 1 != 0
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
 
 
 def test_find_winning_move7():
     board = TicTacToeBoard(
         tup=(True, False, False, True, True, None, None, True, False),
         turn=False,
-        winner=None,
-        terminal=False,
     )
     tree = MCTS()
     for _ in range(4 * 2):
@@ -427,14 +596,13 @@ def test_find_winning_move7():
 
 def test_find_winning_move8():
     board = TicTacToeBoard(
-        tup=(True, False, False, True, True, None, False, True, False),
-        turn=True,
-        winner=None,
-        terminal=False,
+        board=[[" ", " ", " "], [" ", "X", " "], [" ", " ", " "]],
+        turn=False,
     )
     tree = MCTS()
     for _ in range(2 * 2):
         tree.do_rollout(board)
+<<<<<<< HEAD
     tree.do_rollout(board)
     assert len(tree.terminal) == 2
     # Check that all childs are terminated correctly:
@@ -446,3 +614,63 @@ def test_find_winning_move8():
             assert tree.terminal[child] == 0
         else:
             assert False, f"This choice {choice} should never happen!"
+=======
+    for k in tree.terminal:
+        assert k in tree.children
+    for c in tree.children:
+        assert c in tree.children
+    assert len(tree.terminal) == 1837
+    # TODO: Should not explore terminal nodes unnecessay often
+    for node in tree.N:
+        if node.is_terminal():
+            assert tree.terminal[node] == tree.Q[node] / tree.N[node]
+
+
+def test_find_good_moves():
+    from random import seed
+
+    seed(42)
+    # Solve, why it sometimes starts really bad:
+    board = TicTacToeBoard(
+        board=[[" ", " ", " "], [" ", "X", " "], [" ", " ", " "]],
+        turn=False,
+    )
+    tree = MCTS()
+    for _ in range(1837 * 2):
+        tree.do_rollout(board)
+    tree.do_rollout(board)
+    # Check that all childs are terminated correctly:
+    [tree.terminal[child] for child in tree.children[board]]
+    for child in tree.children[board]:
+        if child.board[0][0] == "O":
+            assert tree.terminal[child] == 0.5
+        elif child.board[0][1] == "O":
+            assert tree.terminal[child] == 0.0
+        elif child.board[0][2] == "O":
+            assert tree.terminal[child] == 0.5
+        elif child.board[1][0] == "O":
+            assert tree.terminal[child] == 0.0
+        elif child.board[1][2] == "O":
+            assert tree.terminal[child] == 0.0
+        elif child.board[2][0] == "O":
+            assert tree.terminal[child] == 0.5
+        elif child.board[2][1] == "O":
+            assert tree.terminal[child] == 0.0
+        elif child.board[2][2] == "O":
+            assert tree.terminal[child] == 0.5
+        else:
+            assert 1 != 0
+    # TODO: Make this test not failing!
+    selection = tree.choose(board)
+    print(selection)
+    draw_moves = [0, 2, 6, 8]
+    draw_moves = [[1, 1], [1, 3], [3, 1], [3, 3]]
+    # corner_selected = any([selection.tup[i] is not None and not selection.tup[i] for i in draw_moves])
+    corner_selected = any(
+        [
+            selection.board[r][c] is not None and not selection.board[r][c]
+            for ir, c in draw_moves
+        ]
+    )
+    assert corner_selected, "None corner selected"
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
