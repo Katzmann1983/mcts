@@ -56,8 +56,10 @@ def test_leafs_consistent():
                     assert tree.Q[child] / tree.N[child] == 0.5
                 elif child.winner:
                     assert tree.Q[child] / tree.N[child] == 0
-                else:
+                elif not child.winner:
                     assert tree.Q[child] / tree.N[child] == 1
+                else:
+                    assert False, "Should never happen"
 
 
 def test_leafs_consistent2():
@@ -81,6 +83,10 @@ def test_leafs_consistent2():
                 else:
                     assert tree.Q[child] / tree.N[child] == 1
                 assert tree.terminal[child] == tree.Q[child] / tree.N[child]
+                if child.turn:
+                    assert tree.Q[child] / tree.N[child] == 1
+                else:
+                    assert tree.Q[child] / tree.N[child] == 0
 
 
 def test_all_runs_accounted():
@@ -255,19 +261,19 @@ def test_find_winning_move2():
     for child in tree.children[board]:
         choice = get_choice(board, child)
         if choice == 0:
-            assert tree.terminal[child] == 0.5
+            assert tree.terminal[child] == 0.0
         elif choice == 2:
-            assert tree.terminal[child] == 0.5
+            assert tree.terminal[child] == 0.0
         elif choice == 3:
             assert tree.terminal[child] == 0
         elif choice == 5:
             assert tree.terminal[child] == 0
         elif choice == 6:
-            assert tree.terminal[child] == 0.5
+            assert tree.terminal[child] == 0.0
         elif choice == 7:
-            assert tree.terminal[child] == 0
-        elif choice == 8:
             assert tree.terminal[child] == 0.5
+        elif choice == 8:
+            assert tree.terminal[child] == 0.0
         else:
             assert False, f"This choice {choice} should never happen!"
 
@@ -275,65 +281,64 @@ def test_find_winning_move2():
 def test_find_winning_move3():
     # X must win
     board = TicTacToeBoard(
-        tup=(None, False, None, None, True, None, True, None, None),
+        tup=(None, False, None, None, True, None, None, True, None),
         turn=False,
         winner=None,
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(206 * 2):
+    for _ in range(206 * 3):
         tree.do_rollout(board)
     tree.do_rollout(board)
-    assert len(tree.terminal) == 206
+    assert len(tree.terminal) == 239
     # Check that all childs are terminated correctly:
     print([tree.terminal[child] for child in tree.children[board]])
     print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
     for child in tree.children[board]:
         choice = get_choice(board, child)
         if choice == 0:
-            assert tree.terminal[child] == 1.0
+            assert tree.terminal[child] == 0.5
         elif choice == 2:
-            assert tree.terminal[child] == 1.0
+            assert tree.terminal[child] == 0.5
         elif choice == 3:
             assert tree.terminal[child] == 1.0
         elif choice == 5:
             assert tree.terminal[child] == 1.0
-        elif choice == 7:
-            assert tree.terminal[child] == 1.0
+        elif choice == 6:
+            assert tree.terminal[child] == 0.5
         elif choice == 8:
-            assert tree.terminal[child] == 1.0
+            assert tree.terminal[child] == 0.5
         else:
             assert False, f"This choice {choice} should never happen!"
 
 
 def test_find_winning_move4():
-    # X must win
     board = TicTacToeBoard(
-        tup=(None, False, None, None, True, False, True, None, None),
+        tup=(None, False, False, None, True, None, None, True, None),
         turn=True,
         winner=None,
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(66 * 2):
+    for _ in range(66 * 3):
         tree.do_rollout(board)
     tree.do_rollout(board)
-    assert len(tree.terminal) == 66
+    assert len(tree.terminal) == 76
     # Check that all childs are terminated correctly:
     print([tree.terminal[child] for child in tree.children[board]])
     print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
     for child in tree.children[board]:
         choice = get_choice(board, child)
         if choice == 0:
-            assert tree.terminal[child] == 0.0
-        elif choice == 2:
-            assert tree.terminal[child] == 0.0
+            assert tree.terminal[child] == 0.5
         elif choice == 3:
-            assert tree.terminal[child] == 0.0
-        elif choice == 7:
-            assert tree.terminal[child] == 0.0
+            assert tree.terminal[child] == 1.0
+        elif choice == 5:
+            assert tree.terminal[child] == 1.0
+        elif choice == 6:
+            assert tree.terminal[child] == 1.0
         elif choice == 8:
-            assert tree.terminal[child] == 0.0
+            assert tree.terminal[child] == 1.0
         else:
             assert False, f"This choice {choice} should never happen!"
 
@@ -341,29 +346,29 @@ def test_find_winning_move4():
 def test_find_winning_move5():
     # X must win
     board = TicTacToeBoard(
-        tup=(None, False, None, None, True, False, True, True, None),
+        tup=(True, False, False, None, True, None, None, True, None),
         turn=False,
         winner=None,
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(26 * 2):
+    for _ in range(26 * 3):
         tree.do_rollout(board)
     tree.do_rollout(board)
-    assert len(tree.terminal) == 26
+    assert len(tree.terminal) == 31
     # Check that all childs are terminated correctly:
     print([tree.terminal[child] for child in tree.children[board]])
     print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
     for child in tree.children[board]:
         choice = get_choice(board, child)
-        if choice == 0:
-            assert tree.terminal[child] == 1
-        elif choice == 2:
-            assert tree.terminal[child] == 1
-        elif choice == 3:
-            assert tree.terminal[child] == 1
+        if choice == 3:
+            assert tree.terminal[child] == 1.0
+        elif choice == 5:
+            assert tree.terminal[child] == 1.0
+        elif choice == 6:
+            assert tree.terminal[child] == 1.0
         elif choice == 8:
-            assert tree.terminal[child] == 1
+            assert tree.terminal[child] == 0.5
         else:
             assert False, f"This choice {choice} should never happen!"
 
@@ -371,28 +376,27 @@ def test_find_winning_move5():
 def test_find_winning_move6():
     # X must win
     board = TicTacToeBoard(
-        tup=(None, False, None, False, True, False, True, True, None),
-        # tup=(None, False, None, None, True, None, None, None, None),
+        tup=(True, False, False, None, True, None, None, True, False),
         turn=True,
         winner=None,
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(8 * 2):
+    for _ in range(9 * 3):
         tree.do_rollout(board)
     tree.do_rollout(board)
-    assert len(tree.terminal) == 8
+    assert len(tree.terminal) == 12
     # Check that all childs are terminated correctly:
     print([tree.terminal[child] for child in tree.children[board]])
     print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
     for child in tree.children[board]:
         choice = get_choice(board, child)
-        if choice == 0:
-            assert tree.terminal[child] == 0
-        elif choice == 2:
-            assert tree.terminal[child] == 0
-        elif choice == 8:
-            assert tree.terminal[child] == 0
+        if choice == 3:
+            assert tree.terminal[child] == 1.0
+        elif choice == 5:
+            assert tree.terminal[child] == 0.5
+        elif choice == 6:
+            assert tree.terminal[child] == 1.0
         else:
             assert False, f"This choice {choice} should never happen!"
 
@@ -400,41 +404,38 @@ def test_find_winning_move6():
 def test_find_winning_move7():
     # X must win
     board = TicTacToeBoard(
-        tup=(True, False, None, False, True, False, True, True, None),
-        # tup=(None, False, None, None, True, None, None, None, None),
+        tup=(True, False, False, True, True, None, None, True, False),
         turn=False,
         winner=None,
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(5 * 2):
+    for _ in range(4 * 2):
         tree.do_rollout(board)
     tree.do_rollout(board)
-    assert len(tree.terminal) == 5
+    assert len(tree.terminal) == 4
     # Check that all childs are terminated correctly:
     print([tree.terminal[child] for child in tree.children[board]])
     print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
     for child in tree.children[board]:
         choice = get_choice(board, child)
-        if choice == 2:
-            assert tree.terminal[child] == 1.0
-        elif choice == 8:
+        if choice == 5:
+            assert tree.terminal[child] == 0.0
+        elif choice == 6:
             assert tree.terminal[child] == 1.0
         else:
             assert False, f"This choice {choice} should never happen!"
 
 
 def test_find_winning_move8():
-    # X must win
     board = TicTacToeBoard(
-        tup=(True, False, False, False, True, False, True, True, None),
-        # tup=(None, False, None, None, True, None, None, None, None),
+        tup=(True, False, False, True, True, None, False, True, False),
         turn=True,
         winner=None,
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(5 * 2):
+    for _ in range(2 * 2):
         tree.do_rollout(board)
     tree.do_rollout(board)
     assert len(tree.terminal) == 2
@@ -443,7 +444,7 @@ def test_find_winning_move8():
     print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
     for child in tree.children[board]:
         choice = get_choice(board, child)
-        if choice == 8:
+        if choice == 5:
             assert tree.terminal[child] == 0
         else:
             assert False, f"This choice {choice} should never happen!"

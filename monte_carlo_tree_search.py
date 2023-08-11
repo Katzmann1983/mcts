@@ -15,7 +15,7 @@ class MCTS:
     def __init__(self, exploration_weight=1):
         self.Q = defaultdict(
             int
-        )  # total reward for each node. Especially self.N if false wins, 0 if true wins
+        )  # Number of wins of False, especially self.N if false wins, 0 if true wins
         self.N = defaultdict(int)  # total visit count for each node
         self.children = dict()  # node -> children of the node
         self.exploration_weight = exploration_weight
@@ -53,17 +53,16 @@ class MCTS:
             self._expand(leaf)
             reward = self._simulate(leaf)
         else:
-            rewards = []
-            for child in self.children[leaf]:
-                rewards.append(1 - self.score(child))
+            rewards = [self.score(child) for child in self.children[leaf]]
             if leaf.turn:
-                reward = max(rewards)
-            else:
                 reward = min(rewards)
+            else:
+                reward = max(rewards)
             assert reward in (0, 0.5, 1)
             best_choice = self.choose(leaf)
-            assert 1 - self.score(best_choice) == reward
+            assert self.score(best_choice) == reward
             self.terminal[leaf] = reward
+            assert self.Q[best_choice] / self.N[best_choice] == reward
         self._backpropagate(path, reward)
 
     def _select(self, node):
