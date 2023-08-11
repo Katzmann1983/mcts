@@ -34,17 +34,23 @@ class TicTacToeBoard(Node):
 
     def reward(self):
 <<<<<<< HEAD
+<<<<<<< HEAD
         """Rewards depend on who is the current player"""
         if self.is_winner("X"):
             return 1 if self.turn else 0
         elif self.is_winner("O"):
             return 0 if self.turn else 1
 =======
+=======
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
         if self.is_winner("X"):
             return 1
         elif self.is_winner("O"):
             return 0
+<<<<<<< HEAD
 >>>>>>> 6c65d1d (not working)
+=======
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
         else:
             return 0.5
 
@@ -85,6 +91,10 @@ class TicTacToeBoard(Node):
 
     def __repr__(self) -> str:
         return (self.board, self.turn)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
 
 def new_tic_tac_toe_board():
     return TicTacToeBoard()

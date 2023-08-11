@@ -15,6 +15,7 @@ class MCTS:
     def __init__(self, exploration_weight=1):
         self.Q = defaultdict(
             int
+<<<<<<< HEAD
         )  # Number of wins of False, especially self.N if false wins, 0 if true wins
         self.N = defaultdict(int)  # total visit count for each node
         self.children = dict()  # node -> children of the node
@@ -31,6 +32,13 @@ class MCTS:
                 # avoid unseen moves
                 return float("inf") if n.turn else float("-inf")
             return self.Q[n] / self.N[n]
+=======
+        )  # total reward of each node, out of the view of the player!
+        self.N = defaultdict(int)  # total visit count for each node
+        self.children = dict()  # node -> children of the node
+        self.exploration_weight = exploration_weight
+        self.terminal = {}  # Final value Q/N for terminal nodes, otherwise best move
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
 
     def choose(self, node):
         "Choose the best successor of node. (Choose a move in the game)"
@@ -39,6 +47,23 @@ class MCTS:
 
         if node not in self.children:
             return node.find_random_child()
+<<<<<<< HEAD
+=======
+
+        if node in self.terminal:
+
+            def score(n):
+                try:
+                    return self.terminal[n]
+                except:
+                    return self.Q[n] / self.N[n]
+
+            # rewards = [score(n) for n in self.children[node]]
+            if not node.turn:
+                return max(self.children[node], key=score)
+            else:
+                return min(self.children[node], key=score)
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
 
         if node.turn:
             return min(self.children[node], key=self.score)
@@ -53,14 +78,27 @@ class MCTS:
             self._expand(leaf)
             reward = self._simulate(leaf)
         else:
+<<<<<<< HEAD
             rewards = [self.score(child) for child in self.children[leaf]]
+=======
+            rewards = []
+            for child in self.children[leaf]:
+                a1 = self.Q[child] / self.N[child]
+                if child in self.terminal:
+                    a1 = self.terminal[child]
+                rewards.append(a1)
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
             if leaf.turn:
                 reward = min(rewards)
+<<<<<<< HEAD
             else:
                 reward = max(rewards)
             assert reward in (0, 0.5, 1)
             best_choice = self.choose(leaf)
             assert self.score(best_choice) == reward
+=======
+            assert reward in (0, 0.5, 1)
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
             self.terminal[leaf] = reward
             # assert self.Q[best_choice] / self.N[best_choice] == reward
         self._backpropagate(path, reward)
@@ -106,6 +144,7 @@ class MCTS:
 
     def _simulate(self, node):
         "Returns the reward for a random simulation (to completion) of `node`"
+<<<<<<< HEAD
         invert_reward = True
         while True:
             if node.is_terminal():
@@ -114,13 +153,23 @@ class MCTS:
                 return 1 - reward if invert_reward else reward
             node = node.find_random_child()
             invert_reward = not invert_reward
+=======
+        current_node = node
+        while not current_node.is_terminal():
+            current_node = current_node.find_random_child()
+
+        return current_node.reward()
+>>>>>>> 6c65d1d655083bff6d405b7b0e9b6961393e61a3
 
     def _backpropagate(self, path, reward):
-        "Send the reward back up to the ancestors of the leaf"
+        """
+        Send the reward back up to the ancestors of the leaf
+        Q
+        """
         for node in reversed(path):
             self.N[node] += 1
-            self.Q[node] += reward
-            reward = 1 - reward  # 1 for me is 0 for my enemy, and vice versa
+            self.Q[node] += reward if node.turn else 1 - reward
+            # 1 for me is 0 for my enemy, and vice versa
 
     def _uct_select(self, node):
         "Select a child of node, balancing exploration & exploitation"
