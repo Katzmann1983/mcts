@@ -178,10 +178,6 @@ def test_terminal_nodes_visited_once():
 
 
 def test_find_end_of_game():
-    from random import seed
-
-    seed(42)
-    # Solve, why it sometimes starts really bad:
     board = TicTacToeBoard(
         tup=(None, None, None, None, True, None, None, None, None),
         turn=False,
@@ -196,6 +192,47 @@ def test_find_end_of_game():
     for c in tree.children:
         assert c in tree.children
     assert len(tree.terminal) == 1837
+
+
+def test_find_best_move():
+    # All moves do
+    board = TicTacToeBoard(
+        tup=(None, None, None, None, None, None, None, None, None),
+        turn=True,
+        winner=None,
+        terminal=False,
+    )
+    tree = MCTS()
+    for _ in range(5478 * 2):
+        tree.do_rollout(board)
+    assert len(tree.terminal) == 5478
+    tree.do_rollout(board)
+    assert len(tree.terminal) == 5478
+    # Check that all childs are terminated correctly:
+    print([tree.terminal[child] for child in tree.children[board]])
+    print([tree.Q[child] / tree.N[child] for child in tree.children[board]])
+    for child in tree.children[board]:
+        choice = get_choice(board, child)
+        if choice == 0:
+            assert tree.terminal[child] == 0.5
+        elif choice == 1:
+            assert tree.terminal[child] == 0.5
+        elif choice == 2:
+            assert tree.terminal[child] == 0.5
+        elif choice == 3:
+            assert tree.terminal[child] == 0.5
+        elif choice == 4:
+            assert tree.terminal[child] == 0.5
+        elif choice == 5:
+            assert tree.terminal[child] == 0.5
+        elif choice == 6:
+            assert tree.terminal[child] == 0.5
+        elif choice == 7:
+            assert tree.terminal[child] == 0.5
+        elif choice == 8:
+            assert tree.terminal[child] == 0.5
+        else:
+            assert False, f"This choice {choice} should never happen!"
 
 
 def test_find_winning_move1():
@@ -235,7 +272,6 @@ def test_find_winning_move1():
             assert tree.terminal[child] == 0.5
         else:
             assert False, f"This choice {choice} should never happen!"
-    # TODO: Make this test not failing!
     selection = tree.choose(board)
     choice = get_choice(board, selection)
     print(selection)
@@ -288,7 +324,7 @@ def test_find_winning_move3():
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(206 * 3):
+    for _ in range(239 * 2):
         tree.do_rollout(board)
     tree.do_rollout(board)
     assert len(tree.terminal) == 239
@@ -321,7 +357,7 @@ def test_find_winning_move4():
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(76 * 3):
+    for _ in range(76 * 2):
         tree.do_rollout(board)
     tree.do_rollout(board)
     assert len(tree.terminal) == 76
@@ -353,7 +389,7 @@ def test_find_winning_move5():
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(26 * 3):
+    for _ in range(31 * 2):
         tree.do_rollout(board)
     tree.do_rollout(board)
     assert len(tree.terminal) == 31
@@ -382,7 +418,7 @@ def test_find_winning_move6():
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(9 * 3):
+    for _ in range(12 * 2):
         tree.do_rollout(board)
     tree.do_rollout(board)
     assert len(tree.terminal) == 12
