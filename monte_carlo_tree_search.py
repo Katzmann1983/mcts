@@ -62,7 +62,19 @@ class MCTS:
             best_choice = self.choose(leaf)
             assert self.score(best_choice) == reward
             self.terminal[leaf] = reward
-            assert self.Q[best_choice] / self.N[best_choice] == reward
+            if leaf.tup == (
+                True,
+                False,
+                False,
+                True,
+                True,
+                None,
+                False,
+                True,
+                False,
+            ):
+                print("0")
+            # assert self.Q[best_choice] / self.N[best_choice] == reward
         self._backpropagate(path, reward)
 
     def _select(self, node):

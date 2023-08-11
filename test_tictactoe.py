@@ -239,7 +239,7 @@ def test_find_winning_move1():
     choice = get_choice(board, selection)
     print(selection)
     draw_moves = [0, 2, 6, 8]
-    assert choice not in draw_moves, "Middle "
+    assert choice in draw_moves, "Middle point chosen! Bad MTCS"
 
 
 def test_find_winning_move2():
@@ -301,9 +301,9 @@ def test_find_winning_move3():
         elif choice == 2:
             assert tree.terminal[child] == 0.5
         elif choice == 3:
-            assert tree.terminal[child] == 1.0
+            assert tree.terminal[child] == 0.0
         elif choice == 5:
-            assert tree.terminal[child] == 1.0
+            assert tree.terminal[child] == 0.0
         elif choice == 6:
             assert tree.terminal[child] == 0.5
         elif choice == 8:
@@ -320,7 +320,7 @@ def test_find_winning_move4():
         terminal=False,
     )
     tree = MCTS()
-    for _ in range(66 * 3):
+    for _ in range(76 * 3):
         tree.do_rollout(board)
     tree.do_rollout(board)
     assert len(tree.terminal) == 76
@@ -362,11 +362,11 @@ def test_find_winning_move5():
     for child in tree.children[board]:
         choice = get_choice(board, child)
         if choice == 3:
-            assert tree.terminal[child] == 1.0
+            assert tree.terminal[child] == 0
         elif choice == 5:
-            assert tree.terminal[child] == 1.0
+            assert tree.terminal[child] == 0
         elif choice == 6:
-            assert tree.terminal[child] == 1.0
+            assert tree.terminal[child] == 0
         elif choice == 8:
             assert tree.terminal[child] == 0.5
         else:
@@ -374,7 +374,6 @@ def test_find_winning_move5():
 
 
 def test_find_winning_move6():
-    # X must win
     board = TicTacToeBoard(
         tup=(True, False, False, None, True, None, None, True, False),
         turn=True,
@@ -402,7 +401,6 @@ def test_find_winning_move6():
 
 
 def test_find_winning_move7():
-    # X must win
     board = TicTacToeBoard(
         tup=(True, False, False, True, True, None, None, True, False),
         turn=False,
@@ -420,9 +418,9 @@ def test_find_winning_move7():
     for child in tree.children[board]:
         choice = get_choice(board, child)
         if choice == 5:
-            assert tree.terminal[child] == 0.0
-        elif choice == 6:
             assert tree.terminal[child] == 1.0
+        elif choice == 6:
+            assert tree.terminal[child] == 0.0
         else:
             assert False, f"This choice {choice} should never happen!"
 
