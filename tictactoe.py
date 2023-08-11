@@ -85,30 +85,6 @@ class TicTacToeBoard(_TTTB, Node):
         return self.to_pretty_string()
 
 
-def play_game():
-    tree = MCTS()
-    board = new_tic_tac_toe_board()
-    print(board.to_pretty_string())
-    while True:
-        row_col = input("enter row,col: ")
-        row, col = map(int, row_col.split(","))
-        index = 3 * (row - 1) + (col - 1)
-        if board.tup[index] is not None:
-            raise RuntimeError("Invalid move")
-        board = board.make_move(index)
-        print(board.to_pretty_string())
-        if board.terminal:
-            break
-        # You can train as you go, or only at the beginning.
-        # Here, we train as we go, doing fifty rollouts each turn.
-        for _ in range(10000):
-            tree.do_rollout(board)
-        board = tree.choose(board)
-        print(board)
-        if board.terminal:
-            break
-
-
 def _winning_combos():
     for start in range(0, 9, 3):  # three in a row
         yield (start, start + 1, start + 2)
@@ -131,9 +107,43 @@ def _find_winner(tup):
     return None
 
 
-def new_tic_tac_toe_board():
-    return TicTacToeBoard(tup=(None,) * 9, turn=True, winner=None, terminal=False)
+def play_game():
+    tree = MCTS()
+    board = TicTacToeBoard(tup=(None,) * 9, turn=True, winner=None, terminal=False)
+    print(board.to_pretty_string())
+    while True:
+        row_col = input("enter row,col: ")
+        row, col = map(int, row_col.split(","))
+        index = 3 * (row - 1) + (col - 1)
+        if board.tup[index] is not None:
+            raise RuntimeError("Invalid move")
+        board = board.make_move(index)
+        print(board.to_pretty_string())
+        if board.terminal:
+            break
+        # You can train as you go, or only at the beginning.
+        # Here, we train as we go, doing fifty rollouts each turn.
+        for _ in range(1000):
+            tree.do_rollout(board)
+        board = tree.choose(board)
+        print(board)
+        if board.terminal:
+            break
+
+
+def profile_tree():
+    import cProfile
+
+    profiler = cProfile.Profile()
+    profiler.enable()
+    tree = MCTS()
+    game = TicTacToeBoard(tup=(None,) * 9, turn=True, winner=None, terminal=False)
+    for _ in range(10000):
+        tree.do_rollout(game)
+    profiler.disable()
+    profiler.print_stats()
 
 
 if __name__ == "__main__":
-    play_game()
+    # play_game()
+    profile_tree()
