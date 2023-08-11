@@ -1,4 +1,5 @@
-from tictactoe import TicTacToeBoard, MCTS, _find_winner
+from monte_carlo_tree_search import MCTS
+from TicTacToeChat import TicTacToeBoard
 
 
 def get_choice(board, child):
@@ -158,7 +159,7 @@ def test_correct_winner():
         winner=None,
         terminal=False,
     )
-    assert _find_winner(board.tup)
+    assert board.winner
 
 
 def test_terminal_nodes_visited_once():
