@@ -13,11 +13,24 @@ class MCTS:
     "Monte Carlo tree searcher. First rollout the tree then choose a move."
 
     def __init__(self, exploration_weight=1):
-        self.Q = defaultdict(int)  # total reward of each node
+        self.Q = defaultdict(
+            int
+        )  # total reward for each node. Especially self.N if false wins, 0 if true wins
         self.N = defaultdict(int)  # total visit count for each node
         self.children = dict()  # node -> children of the node
         self.exploration_weight = exploration_weight
-        self.terminal = {} # Final value Q/N for terminal nodes, otherwise best move
+        self.terminal = (
+            {}
+        )  # If terminal node = Q/N, else min/max depending on active player
+
+    def score(self, n):
+        try:
+            return self.terminal[n]
+        except KeyError:
+            if self.N[n] == 0:
+                # avoid unseen moves
+                return float("inf") if n.turn else float("-inf")
+            return self.Q[n] / self.N[n]
 
     def choose(self, node):
         "Choose the best successor of node. (Choose a move in the game)"
@@ -26,51 +39,32 @@ class MCTS:
 
         if node not in self.children:
             return node.find_random_child()
-        
-        if node in self.terminal:
-            def score(n):
-                try:
-                    return self.terminal[n]
-                except:
-                    return self.Q[n]/self.N[n]
-            rewards = [score(n) for n in self.children[node]]
-            if not node.turn:
-                return max(self.children[node], key=score)
-            else:
-                return min(self.children[node], key=score)
 
-        def score(n):
-            if self.N[n] == 0:
-                return float("-inf")  # avoid unseen moves
-            return self.Q[n] / self.N[n]  # average reward
-
-        if not node.turn:
-            return max(self.children[node], key=score)
+        if node.turn:
+            return min(self.children[node], key=self.score)
         else:
-            return min(self.children[node], key=score)
+            return max(self.children[node], key=self.score)
 
     def do_rollout(self, node):
         "Make the tree one layer better. (Train for one iteration.)"
         path, dead_end = self._select(node)
         leaf = path[-1]
-        if not dead_end:            
+        if not dead_end:
             self._expand(leaf)
             reward = self._simulate(leaf)
         else:
             rewards = []
             for child in self.children[leaf]:
-                a1 = self.Q[child]/self.N[child]
-                if child in self.terminal:
-                    a1 = self.terminal[child]
-                rewards.append(a1)
+                rewards.append(1 - self.score(child))
             if leaf.turn:
                 reward = max(rewards)
             else:
                 reward = min(rewards)
-            assert (reward in (0, 0.5, 1))
+            assert reward in (0, 0.5, 1)
+            best_choice = self.choose(leaf)
+            assert 1 - self.score(best_choice) == reward
             self.terminal[leaf] = reward
         self._backpropagate(path, reward)
-
 
     def _select(self, node):
         "Find an unexplored descendent of `node`"
@@ -80,13 +74,17 @@ class MCTS:
             if node not in self.children or not self.children[node]:
                 # node is either unexplored or terminal
                 return path, False
-            unexplored = [node for node in self.children[node] if self.N[node]== 0]
+            unexplored = [node for node in self.children[node] if self.N[node] == 0]
             if unexplored:
                 n = unexplored.pop()
                 path.append(n)
                 return path, False
             # TODO Fix that the two different terminals are the same, e.g. when node = board.terminal = False
-            interesting = [n for n in self.children[node] if (n not in self.terminal) and (not n.is_terminal()) and self.N[n]>0]
+            interesting = [
+                n
+                for n in self.children[node]
+                if (n not in self.terminal) and (not n.is_terminal()) and self.N[n] > 0
+            ]
             if len(interesting) == 0:
                 return path, True
             node = self._uct_select(node)  # descend a layer deeper
@@ -95,15 +93,17 @@ class MCTS:
         "Update the `children` dict with the children of `node`"
         if node in self.children:
             return  # already expanded
-        
+
         self.children[node] = node.find_children()
 
         # Check if any of the cild nodes represent previously visited states:
-        if len(self.children[node])>0:
+        if len(self.children[node]) > 0:
             if all([child.is_terminal() for child in self.children[node]]):
-                if all([self.Q[child]>0 for child in self.children[node]]):
+                if all([self.Q[child] > 0 for child in self.children[node]]):
                     # Remove child node from the list of children?
-                    self.terminal[node] = max([self.Q[child]/self.N[child] for child in self.children[node]])
+                    self.terminal[node] = max(
+                        [self.Q[child] / self.N[child] for child in self.children[node]]
+                    )
 
     def _simulate(self, node):
         "Returns the reward for a random simulation (to completion) of `node`"
@@ -111,7 +111,7 @@ class MCTS:
         while True:
             if node.is_terminal():
                 reward = node.reward()
-                self.terminal[node] = 1-reward
+                self.terminal[node] = 1 - reward
                 return 1 - reward if invert_reward else reward
             node = node.find_random_child()
             invert_reward = not invert_reward
@@ -130,7 +130,11 @@ class MCTS:
         assert all(n in self.children for n in self.children[node])
 
         # Only non-terminals, not visited:
-        interesting = [n for n in self.children[node] if (n not in self.terminal) and (not n.is_terminal()) and self.N[n]>0]
+        interesting = [
+            n
+            for n in self.children[node]
+            if (n not in self.terminal) and (not n.is_terminal()) and self.N[n] > 0
+        ]
 
         log_N_vertex = math.log(self.N[node])
 
